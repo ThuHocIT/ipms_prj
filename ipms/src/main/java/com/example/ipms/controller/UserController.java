@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder; // Cần cái này để mã hóa
 import org.springframework.web.bind.annotation.*;
-
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -66,5 +66,23 @@ public class UserController {
         userRepository.save(user);
 
         return ResponseEntity.ok("Đổi mật khẩu thành công!");
+    }
+    // API Đăng ký tài khoản mới (Public)
+    @PostMapping("/register")
+    public ResponseEntity<?> registerUser(@RequestBody User user) {
+        // 1. Kiểm tra email đã tồn tại chưa
+        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
+            return ResponseEntity.badRequest().body("Email này đã được sử dụng!");
+        }
+
+        // 2. Thiết lập thông tin mặc định
+        user.setRole(Role.CLIENT); // Mặc định là Khách hàng
+        user.setPassword(passwordEncoder.encode(user.getPassword())); // Mã hóa mật khẩu
+        user.setCreatedAt(LocalDateTime.now());
+
+        // 3. Lưu vào DB
+        userRepository.save(user);
+
+        return ResponseEntity.ok("Đăng ký thành công! Vui lòng đăng nhập.");
     }
 }
